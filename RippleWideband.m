@@ -112,33 +112,36 @@ classdef RippleWideband < WidebandManager
             % channel.
             %
             % If start and stop are not provided, return all available data. 
-            start = floor(t_start * self.samplingRate);
-            if start < 1
-                start = 1;
-            end
             
-            stop = floor(t_stop * self.samplingRate);
-            
-            if length(chan_index) > 1        
-                data = nan(length(chan_index), stop-start+1, 'double');
-                for ch=1:length(chan_index)    
-                    % You don't actually need a cast here since audioread
-                    % only updates a proper subset of the data and thus
-                    % inherits data's type. That said, leave it
-                    % because this seems like something that The Mathworks
-                    % may break at any moment.
-                    data(ch,:) = double(audioread(self.dataFiles{chan_index(ch)}, [start, stop], 'native'));
-                end
+            if ~exist('t_start', 'var') && ~exist('t_stop', 'var')
+                data = double(audioread(self.dataFiles{chan_index}, 'native'))';
             else
-                % This does exactly the same thing, avoiding an extra copy
-                % (or any copies, if the optimizer is smart). Obviously,
-                % you need a cast here or the multiplication is wrong
-                % below.
-                if exist('start', 'var') && exist('stop', 'var')
-                    data = double(audioread(self.dataFiles{chan_index}, [start, stop], 'native'))';
+                start = floor(t_start * self.samplingRate);
+                if start < 1
+                    start = 1;
+                end
+                
+                stop = floor(t_stop * self.samplingRate);
+                
+                if length(chan_index) > 1
+                    data = nan(length(chan_index), stop-start+1, 'double');
+                    for ch=1:length(chan_index)
+                        % You don't actually need a cast here since audioread
+                        % only updates a proper subset of the data and thus
+                        % inherits data's type. That said, leave it
+                        % because this seems like something that The Mathworks
+                        % may break at any moment.
+                        data(ch,:) = double(audioread(self.dataFiles{chan_index(ch)}, [start, stop], 'native'));
+                    end
                 else
-                    data = double(audioread(self.dataFiles{chan_index}, 'native'))';
-                end                               
+                    % This does exactly the same thing, avoiding an extra copy
+                    % (or any copies, if the optimizer is smart). Obviously,
+                    % you need a cast here or the multiplication is wrong
+                    % below.
+                    if exist('start', 'var') && exist('stop', 'var')
+                        data = double(audioread(self.dataFiles{chan_index}, [start, stop], 'native'))';
+                    end
+                end
             end
             
             % You *do* need bsxfun here!
