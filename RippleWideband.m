@@ -114,7 +114,19 @@ classdef RippleWideband < WidebandManager
             % If start and stop are not provided, return all available data. 
             
             if ~exist('t_start', 'var') && ~exist('t_stop', 'var')
-                data = double(audioread(self.dataFiles{chan_index}, 'native'))';
+                if length(chan_index) > 1
+%                     data = nan(length(chan_index), stop-start+1, 'double');
+                    for ch=1:length(chan_index)
+                        % You don't actually need a cast here since audioread
+                        % only updates a proper subset of the data and thus
+                        % inherits data's type. That said, leave it
+                        % because this seems like something that The Mathworks
+                        % may break at any moment.
+                        data(ch,:) = double(audioread(self.dataFiles{chan_index(ch)}, 'native'));
+                    end
+                else
+                    data = double(audioread(self.dataFiles{chan_index}, 'native'))';
+                end
             else
                 start = floor(t_start * self.samplingRate);
                 if start < 1
@@ -145,7 +157,7 @@ classdef RippleWideband < WidebandManager
             end
             
             % You *do* need bsxfun here!
-            data =  bsxfun(@times, data, self.scaleFactor(chan_index)');
+            data =  bsxfun(@times, data, self.scaleFactor(chan_index));
         end
        
         
