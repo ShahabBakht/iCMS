@@ -281,6 +281,9 @@ classdef iCMSanalysis < handle
             
             
         end
+        function powerSpectrum = getPowerSpectrum(self,Data)
+            
+        end
     end
 end
 
